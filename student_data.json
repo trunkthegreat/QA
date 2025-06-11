@@ -1,0 +1,61 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "name": "Alice Johnson",
+      "email": "alice.johnson@university.edu",
+      "student_id": "ST001",
+      "class": "CS-101",
+      "year": "Sophomore",
+      "major": "Computer Science",
+      "enrollment_date": "2024-09-01"
+    },
+    {
+      "id": 2,
+      "name": "Bob Smith", 
+      "email": "bob.smith@university.edu",
+      "student_id": "ST002",
+      "class": "CS-101",
+      "year": "Freshman",
+      "major": "Computer Science",
+      "enrollment_date": "2024-09-01"
+    },
+    {
+      "id": 3,
+      "name": "Carol Williams",
+      "email": "carol.williams@university.edu", 
+      "student_id": "ST003",
+      "class": "CS-101",
+      "year": "Junior",
+      "major": "Information Technology",
+      "enrollment_date": "2024-09-01"
+    },
+    {
+      "id": 4,
+      "name": "David Brown",
+      "email": "david.brown@university.edu",
+      "student_id": "ST004", 
+      "class": "CS-101",
+      "year": "Sophomore",
+      "major": "Computer Science",
+      "enrollment_date": "2024-09-01"
+    },
+    {
+      "id": 5,
+      "name": "Eva Davis",
+      "email": "eva.davis@university.edu",
+      "student_id": "ST005",
+      "class": "CS-101", 
+      "year": "Freshman",
+      "major": "Data Science",
+      "enrollment_date": "2024-09-01"
+    }
+  ],
+  "class_info": {
+    "class_code": "CS-101",
+    "class_name": "Introduction to Computer Science",
+    "instructor": "Dr. Sarah Wilson",
+    "semester": "Fall 2024",
+    "total_enrolled": 5
+  }
+}
