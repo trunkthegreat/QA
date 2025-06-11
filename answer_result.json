@@ -1,0 +1,25 @@
+{
+  "responses": [],
+  "metadata": {
+    "total_responses": 0,
+    "last_updated": null,
+    "questionnaire_id": "course_satisfaction_2025"
+  },
+  "example_structure": {
+    "note": "This shows the structure of how responses will be stored when students submit answers",
+    "sample_response": {
+      "response_id": 1,
+      "student_id": 1,
+      "submission_timestamp": "2025-06-11T10:30:00Z",
+      "answers": {
+        "1": "Good",
+        "2": "Clear", 
+        "3": "Engaging",
+        "4": "Probably",
+        "5": "The course was helpful but could use more practical examples."
+      },
+      "completion_status": "completed",
+      "time_spent_minutes": 5
+    }
+  }
+}
