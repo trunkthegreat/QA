@@ -183,6 +183,15 @@
             border: 1px solid #f5c6cb;
         }
 
+        .info-message {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -408,98 +417,108 @@
     </div>
 
     <script>
-        // Sample data structure (simulating JSON files)
-        const questionnaireData = {
-            "title": "Course Satisfaction Survey",
-            "description": "Please rate your experience with the course",
-            "questions": [
-                {
-                    "id": 1,
-                    "type": "radio",
-                    "question": "How would you rate the overall course quality?",
-                    "options": ["Excellent", "Good", "Average", "Poor", "Very Poor"]
-                },
-                {
-                    "id": 2,
-                    "type": "radio",
-                    "question": "How clear were the course instructions?",
-                    "options": ["Very Clear", "Clear", "Somewhat Clear", "Unclear", "Very Unclear"]
-                },
-                {
-                    "id": 3,
-                    "type": "radio",
-                    "question": "How engaging was the course content?",
-                    "options": ["Very Engaging", "Engaging", "Neutral", "Boring", "Very Boring"]
-                },
-                {
-                    "id": 4,
-                    "type": "radio",
-                    "question": "Would you recommend this course to others?",
-                    "options": ["Definitely", "Probably", "Maybe", "Probably Not", "Definitely Not"]
-                },
-                {
-                    "id": 5,
-                    "type": "textarea",
-                    "question": "Please provide any additional comments or suggestions:",
-                    "placeholder": "Your comments here..."
-                }
-            ]
+        // GitHub Configuration - Replace with your details
+        const GITHUB_CONFIG = {
+            owner: 'trunkthegreat',  // Your GitHub username
+            repo: 'QA',              // Your repository name
+            token: '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', // Replace with your Personal Access Token
+            branch: 'main'           // Branch name (usually 'main' or 'master')
         };
 
-        const studentData = {
-            "students": [
-                {
-                    "id": 1,
-                    "name": "Alice Johnson",
-                    "email": "alice.johnson@email.com",
-                    "class": "CS-101",
-                    "student_id": "ST001"
-                },
-                {
-                    "id": 2,
-                    "name": "Bob Smith",
-                    "email": "bob.smith@email.com",
-                    "class": "CS-101",
-                    "student_id": "ST002"
-                },
-                {
-                    "id": 3,
-                    "name": "Carol Williams",
-                    "email": "carol.williams@email.com",
-                    "class": "CS-101",
-                    "student_id": "ST003"
-                },
-                {
-                    "id": 4,
-                    "name": "David Brown",
-                    "email": "david.brown@email.com",
-                    "class": "CS-101",
-                    "student_id": "ST004"
-                },
-                {
-                    "id": 5,
-                    "name": "Eva Davis",
-                    "email": "eva.davis@email.com",
-                    "class": "CS-101",
-                    "student_id": "ST005"
+        // GitHub API Functions
+        async function githubAPICall(endpoint, method = 'GET', data = null) {
+            const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${endpoint}`;
+            const headers = {
+                'Authorization': `token ${GITHUB_CONFIG.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            };
+
+            const config = {
+                method: method,
+                headers: headers
+            };
+
+            if (data) {
+                config.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(url, config);
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
                 }
-            ]
-        };
+                return await response.json();
+            } catch (error) {
+                console.error('GitHub API call failed:', error);
+                throw error;
+            }
+        }
+
+        async function readFromGitHub(filename) {
+            try {
+                const response = await githubAPICall(filename);
+                const content = atob(response.content.replace(/\s/g, ''));
+                return {
+                    data: JSON.parse(content),
+                    sha: response.sha
+                };
+            } catch (error) {
+                console.error(`Error reading ${filename}:`, error);
+                if (filename === 'answer_result.json') {
+                    // If answer_result.json doesn't exist, return empty structure
+                    return {
+                        data: {"responses": [], "metadata": {"total_responses": 0, "last_updated": null}},
+                        sha: null
+                    };
+                }
+                throw error;
+            }
+        }
+
+        async function writeToGitHub(filename, data, sha = null) {
+            try {
+                const content = btoa(JSON.stringify(data, null, 2));
+                const commitData = {
+                    message: `Update ${filename} - ${new Date().toISOString()}`,
+                    content: content,
+                    branch: GITHUB_CONFIG.branch
+                };
+
+                if (sha) {
+                    commitData.sha = sha;
+                }
+
+                const response = await githubAPICall(filename, 'PUT', commitData);
+                return response;
+            } catch (error) {
+                console.error(`Error writing ${filename}:`, error);
+                throw error;
+            }
+        }
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
         });
 
-        function initializeApp() {
-            // Initialize localStorage if empty
-            if (!localStorage.getItem('answerResults')) {
-                localStorage.setItem('answerResults', JSON.stringify({"responses": []}));
+        async function initializeApp() {
+            // Check if GitHub token is configured
+            if (GITHUB_CONFIG.token === 'YOUR_GITHUB_TOKEN_HERE') {
+                showMessage('Please configure your GitHub token in the code before using the app.', 'error');
+                return;
             }
             
-            loadStudents();
-            loadQuestions();
-            updateReports();
+            try {
+                showMessage('Loading data from GitHub...', 'info');
+                await loadStudents();
+                await loadQuestions();
+                await updateReports();
+                showMessage('Data loaded successfully from GitHub!', 'success');
+            } catch (error) {
+                console.error('Failed to initialize app:', error);
+                showMessage('Failed to load data from GitHub. Please check your token and repository settings.', 'error');
+            }
         }
 
         function switchTab(tabName) {
@@ -516,69 +535,85 @@
             }
         }
 
-        function loadStudents() {
-            const studentSelect = document.getElementById('studentSelect');
-            studentSelect.innerHTML = '<option value="">Choose a student...</option>';
-            
-            studentData.students.forEach(student => {
-                const option = document.createElement('option');
-                option.value = student.id;
-                option.textContent = `${student.name} (${student.student_id})`;
-                studentSelect.appendChild(option);
-            });
+        async function loadStudents() {
+            try {
+                const result = await readFromGitHub('student_data.json');
+                const studentData = result.data;
+                
+                const studentSelect = document.getElementById('studentSelect');
+                studentSelect.innerHTML = '<option value="">Choose a student...</option>';
+                
+                studentData.students.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student.id;
+                    option.textContent = `${student.name} (${student.student_id})`;
+                    studentSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showMessage('Failed to load student data from GitHub.', 'error');
+            }
         }
 
-        function loadQuestions() {
-            const container = document.getElementById('questionsContainer');
-            container.innerHTML = '';
-            
-            questionnaireData.questions.forEach(question => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'question';
+        async function loadQuestions() {
+            try {
+                const result = await readFromGitHub('questionnaire_data.json');
+                const questionnaireData = result.data;
                 
-                const questionTitle = document.createElement('h3');
-                questionTitle.textContent = `${question.id}. ${question.question}`;
-                questionDiv.appendChild(questionTitle);
+                const container = document.getElementById('questionsContainer');
+                container.innerHTML = '';
                 
-                if (question.type === 'radio') {
-                    const radioGroup = document.createElement('div');
-                    radioGroup.className = 'radio-group';
+                questionnaireData.questions.forEach(question => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question';
                     
-                    question.options.forEach((option, index) => {
-                        const radioOption = document.createElement('div');
-                        radioOption.className = 'radio-option';
-                        
-                        const radioInput = document.createElement('input');
-                        radioInput.type = 'radio';
-                        radioInput.name = `question_${question.id}`;
-                        radioInput.value = option;
-                        radioInput.id = `q${question.id}_${index}`;
-                        radioInput.required = true;
-                        
-                        const label = document.createElement('label');
-                        label.htmlFor = `q${question.id}_${index}`;
-                        label.textContent = option;
-                        
-                        radioOption.appendChild(radioInput);
-                        radioOption.appendChild(label);
-                        radioGroup.appendChild(radioOption);
-                    });
+                    const questionTitle = document.createElement('h3');
+                    questionTitle.textContent = `${question.id}. ${question.question}`;
+                    questionDiv.appendChild(questionTitle);
                     
-                    questionDiv.appendChild(radioGroup);
-                } else if (question.type === 'textarea') {
-                    const textarea = document.createElement('textarea');
-                    textarea.name = `question_${question.id}`;
-                    textarea.placeholder = question.placeholder || '';
-                    textarea.rows = 4;
-                    questionDiv.appendChild(textarea);
-                }
-                
-                container.appendChild(questionDiv);
-            });
+                    if (question.type === 'radio') {
+                        const radioGroup = document.createElement('div');
+                        radioGroup.className = 'radio-group';
+                        
+                        question.options.forEach((option, index) => {
+                            const radioOption = document.createElement('div');
+                            radioOption.className = 'radio-option';
+                            
+                            const radioInput = document.createElement('input');
+                            radioInput.type = 'radio';
+                            radioInput.name = `question_${question.id}`;
+                            radioInput.value = option;
+                            radioInput.id = `q${question.id}_${index}`;
+                            radioInput.required = true;
+                            
+                            const label = document.createElement('label');
+                            label.htmlFor = `q${question.id}_${index}`;
+                            label.textContent = option;
+                            
+                            radioOption.appendChild(radioInput);
+                            radioOption.appendChild(label);
+                            radioGroup.appendChild(radioOption);
+                        });
+                        
+                        questionDiv.appendChild(radioGroup);
+                    } else if (question.type === 'textarea') {
+                        const textarea = document.createElement('textarea');
+                        textarea.name = `question_${question.id}`;
+                        textarea.placeholder = question.placeholder || '';
+                        textarea.rows = 4;
+                        questionDiv.appendChild(textarea);
+                    }
+                    
+                    container.appendChild(questionDiv);
+                });
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                showMessage('Failed to load questionnaire data from GitHub.', 'error');
+            }
         }
 
         // Handle form submission
-        document.getElementById('questionnaireForm').addEventListener('submit', function(e) {
+        document.getElementById('questionnaireForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const studentId = document.getElementById('studentSelect').value;
@@ -586,137 +621,180 @@
                 showMessage('Please select a student before submitting.', 'error');
                 return;
             }
-            
-            // Check if student already submitted
-            const existingResults = JSON.parse(localStorage.getItem('answerResults'));
-            const existingResponse = existingResults.responses.find(r => r.student_id == studentId);
-            
-            if (existingResponse) {
-                showMessage('This student has already submitted a response.', 'error');
-                return;
+
+            try {
+                showMessage('Submitting response...', 'info');
+                
+                // Read current answer results from GitHub
+                const answerResult = await readFromGitHub('answer_result.json');
+                const existingResults = answerResult.data;
+                
+                // Check if student already submitted
+                const existingResponse = existingResults.responses.find(r => r.student_id == studentId);
+                
+                if (existingResponse) {
+                    showMessage('This student has already submitted a response.', 'error');
+                    return;
+                }
+                
+                const formData = new FormData(this);
+                const answers = {};
+                
+                // Get questions from GitHub to collect answers properly
+                const questionnaireResult = await readFromGitHub('questionnaire_data.json');
+                const questionnaireData = questionnaireResult.data;
+                
+                // Collect answers
+                questionnaireData.questions.forEach(question => {
+                    const answer = formData.get(`question_${question.id}`);
+                    answers[question.id] = answer || '';
+                });
+                
+                // Create new response
+                const newResponse = {
+                    response_id: existingResults.responses.length + 1,
+                    student_id: parseInt(studentId),
+                    submission_timestamp: new Date().toISOString(),
+                    answers: answers,
+                    completion_status: "completed"
+                };
+                
+                // Add to existing results
+                existingResults.responses.push(newResponse);
+                existingResults.metadata.total_responses = existingResults.responses.length;
+                existingResults.metadata.last_updated = new Date().toISOString();
+                
+                // Write back to GitHub
+                await writeToGitHub('answer_result.json', existingResults, answerResult.sha);
+                
+                showMessage('Questionnaire submitted successfully to GitHub!', 'success');
+                this.reset();
+                
+                // Update reports
+                await updateReports();
+                
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                showMessage('Failed to submit questionnaire. Please try again.', 'error');
             }
-            
-            const formData = new FormData(this);
-            const answers = {};
-            
-            // Collect answers
-            questionnaireData.questions.forEach(question => {
-                const answer = formData.get(`question_${question.id}`);
-                answers[question.id] = answer || '';
-            });
-            
-            // Save to localStorage (simulating JSON file write)
-            const newResponse = {
-                student_id: parseInt(studentId),
-                timestamp: new Date().toISOString(),
-                answers: answers
-            };
-            
-            existingResults.responses.push(newResponse);
-            localStorage.setItem('answerResults', JSON.stringify(existingResults));
-            
-            showMessage('Questionnaire submitted successfully!', 'success');
-            this.reset();
-            
-            // Update reports if on report tab
-            updateReports();
         });
 
         function showMessage(message, type) {
             const messageDiv = document.getElementById('submitMessage');
             messageDiv.innerHTML = `<div class="${type}-message">${message}</div>`;
             
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 5000);
-        }
-
-        function updateReports() {
-            const results = JSON.parse(localStorage.getItem('answerResults'));
-            const responses = results.responses;
-            
-            // Update stats
-            document.getElementById('totalResponses').textContent = responses.length;
-            document.getElementById('completionRate').textContent = 
-                Math.round((responses.length / studentData.students.length) * 100) + '%';
-            
-            // Calculate average satisfaction (based on first question)
-            let avgSat = 0;
-            if (responses.length > 0) {
-                const satisfactionScores = responses.map(r => {
-                    const answer = r.answers['1'];
-                    const scoreMap = {'Excellent': 5, 'Good': 4, 'Average': 3, 'Poor': 2, 'Very Poor': 1};
-                    return scoreMap[answer] || 0;
-                });
-                avgSat = (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1);
+            if (type !== 'info') {
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 5000);
             }
-            document.getElementById('avgSatisfaction').textContent = avgSat;
-            
-            // Generate charts
-            generateCharts(responses);
-            
-            // Update student status
-            updateStudentStatus(responses);
         }
 
-        function generateCharts(responses) {
+        async function updateReports() {
+            try {
+                // Read data from GitHub
+                const [answerResult, studentResult] = await Promise.all([
+                    readFromGitHub('answer_result.json'),
+                    readFromGitHub('student_data.json')
+                ]);
+                
+                const responses = answerResult.data.responses;
+                const studentData = studentResult.data;
+                
+                // Update stats
+                document.getElementById('totalResponses').textContent = responses.length;
+                document.getElementById('completionRate').textContent = 
+                    Math.round((responses.length / studentData.students.length) * 100) + '%';
+                
+                // Calculate average satisfaction (based on first question)
+                let avgSat = 0;
+                if (responses.length > 0) {
+                    const satisfactionScores = responses.map(r => {
+                        const answer = r.answers['1'];
+                        const scoreMap = {'Excellent': 5, 'Good': 4, 'Average': 3, 'Poor': 2, 'Very Poor': 1};
+                        return scoreMap[answer] || 0;
+                    });
+                    avgSat = (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1);
+                }
+                document.getElementById('avgSatisfaction').textContent = avgSat;
+                
+                // Generate charts
+                await generateCharts(responses);
+                
+                // Update student status
+                updateStudentStatus(responses, studentData);
+                
+            } catch (error) {
+                console.error('Error updating reports:', error);
+                showMessage('Failed to update reports from GitHub.', 'error');
+            }
+        }
+
+        async function generateCharts(responses) {
             const container = document.getElementById('chartsContainer');
             container.innerHTML = '';
             
-            questionnaireData.questions.forEach(question => {
-                if (question.type === 'radio') {
-                    const chartDiv = document.createElement('div');
-                    chartDiv.className = 'chart-container';
-                    
-                    const title = document.createElement('div');
-                    title.className = 'chart-title';
-                    title.textContent = question.question;
-                    chartDiv.appendChild(title);
-                    
-                    const answerCounts = {};
-                    question.options.forEach(option => answerCounts[option] = 0);
-                    
-                    responses.forEach(response => {
-                        const answer = response.answers[question.id];
-                        if (answer && answerCounts.hasOwnProperty(answer)) {
-                            answerCounts[answer]++;
-                        }
-                    });
-                    
-                    const maxCount = Math.max(...Object.values(answerCounts), 1);
-                    
-                    Object.entries(answerCounts).forEach(([option, count]) => {
-                        const barDiv = document.createElement('div');
-                        barDiv.className = 'chart-bar';
+            try {
+                const questionnaireResult = await readFromGitHub('questionnaire_data.json');
+                const questionnaireData = questionnaireResult.data;
+                
+                questionnaireData.questions.forEach(question => {
+                    if (question.type === 'radio') {
+                        const chartDiv = document.createElement('div');
+                        chartDiv.className = 'chart-container';
                         
-                        const label = document.createElement('div');
-                        label.className = 'chart-label';
-                        label.textContent = option;
+                        const title = document.createElement('div');
+                        title.className = 'chart-title';
+                        title.textContent = question.question;
+                        chartDiv.appendChild(title);
                         
-                        const progress = document.createElement('div');
-                        progress.className = 'chart-progress';
+                        const answerCounts = {};
+                        question.options.forEach(option => answerCounts[option] = 0);
                         
-                        const fill = document.createElement('div');
-                        fill.className = 'chart-fill';
-                        fill.style.width = responses.length > 0 ? `${(count / maxCount) * 100}%` : '0%';
+                        responses.forEach(response => {
+                            const answer = response.answers[question.id];
+                            if (answer && answerCounts.hasOwnProperty(answer)) {
+                                answerCounts[answer]++;
+                            }
+                        });
                         
-                        const value = document.createElement('div');
-                        value.className = 'chart-value';
-                        value.textContent = count;
+                        const maxCount = Math.max(...Object.values(answerCounts), 1);
                         
-                        progress.appendChild(fill);
-                        barDiv.appendChild(label);
-                        barDiv.appendChild(progress);
-                        barDiv.appendChild(value);
-                        chartDiv.appendChild(barDiv);
-                    });
-                    
-                    container.appendChild(chartDiv);
-                }
-            });
+                        Object.entries(answerCounts).forEach(([option, count]) => {
+                            const barDiv = document.createElement('div');
+                            barDiv.className = 'chart-bar';
+                            
+                            const label = document.createElement('div');
+                            label.className = 'chart-label';
+                            label.textContent = option;
+                            
+                            const progress = document.createElement('div');
+                            progress.className = 'chart-progress';
+                            
+                            const fill = document.createElement('div');
+                            fill.className = 'chart-fill';
+                            fill.style.width = responses.length > 0 ? `${(count / maxCount) * 100}%` : '0%';
+                            
+                            const value = document.createElement('div');
+                            value.className = 'chart-value';
+                            value.textContent = count;
+                            
+                            progress.appendChild(fill);
+                            barDiv.appendChild(label);
+                            barDiv.appendChild(progress);
+                            barDiv.appendChild(value);
+                            chartDiv.appendChild(barDiv);
+                        });
+                        
+                        container.appendChild(chartDiv);
+                    }
+                });
+            } catch (error) {
+                console.error('Error generating charts:', error);
+            }
         }
 
-        function updateStudentStatus(responses) {
+        function updateStudentStatus(responses, studentData) {
             const container = document.getElementById('studentStatusList');
             container.innerHTML = '';
             
@@ -752,28 +830,6 @@
             });
         }
 
-        // Simulate API calls for GitHub deployment
-        function simulateAPICall(method, endpoint, data = null) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    if (method === 'GET') {
-                        if (endpoint === '/api/questionnaire-data') {
-                            resolve(questionnaireData);
-                        } else if (endpoint === '/api/student-data') {
-                            resolve(studentData);
-                        } else if (endpoint === '/api/answer-results') {
-                            resolve(JSON.parse(localStorage.getItem('answerResults')));
-                        }
-                    } else if (method === 'POST' && endpoint === '/api/submit-answer') {
-                        // In a real backend, this would write to answer_result.json
-                        const results = JSON.parse(localStorage.getItem('answerResults'));
-                        results.responses.push(data);
-                        localStorage.setItem('answerResults', JSON.stringify(results));
-                        resolve({success: true});
-                    }
-                }, 100);
-            });
-        }
     </script>
 </body>
 </html>
