@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Questionnaire System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2196F3;
+            border-bottom: 3px solid #2196F3;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        .question {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .question h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .radio-option:hover {
+            background: rgba(33, 150, 243, 0.1);
+        }
+
+        .radio-option input {
+            margin-right: 10px;
+            width: auto;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .chart-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-label {
+            width: 150px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .chart-progress {
+            flex: 1;
+            height: 25px;
+            background: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+
+        .chart-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            border-radius: 12px;
+            transition: width 0.8s ease;
+        }
+
+        .chart-value {
+            font-weight: 600;
+            color: #333;
+            min-width: 50px;
+        }
+
+        .student-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .student-details h4 {
+            margin: 0;
+            color: #333;
+        }
+
+        .student-details p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .completion-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab-content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-label {
+                width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Student Questionnaire System</h1>
+            <p>Comprehensive feedback collection and analysis platform</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('questionnaire')">📝 Questionnaire</button>
+            <button class="tab" onclick="switchTab('report')">📈 Results & Reports</button>
+        </div>
+
+        <div id="questionnaire" class="tab-content active">
+            <h2>Student Information & Questionnaire</h2>
+            
+            <form id="questionnaireForm">
+                <div class="form-group">
+                    <label for="studentSelect">Select Student:</label>
+                    <select id="studentSelect" required>
+                        <option value="">Choose a student...</option>
+                    </select>
+                </div>
+
+                <div id="questionsContainer"></div>
+
+                <button type="submit" class="btn">Submit Questionnaire</button>
+            </form>
+
+            <div id="submitMessage"></div>
+        </div>
+
+        <div id="report" class="tab-content">
+            <h2>📊 Questionnaire Results & Analysis</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalResponses">0</div>
+                    <div>Total Responses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completionRate">0%</div>
+                    <div>Completion Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avgSatisfaction">0</div>
+                    <div>Avg Satisfaction</div>
+                </div>
+            </div>
+
+            <div id="chartsContainer"></div>
+
+            <div class="student-list">
+                <h3>Student Response Status</h3>
+                <div id="studentStatusList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data structure (simulating JSON files)
+        const questionnaireData = {
+            "title": "Course Satisfaction Survey",
+            "description": "Please rate your experience with the course",
+            "questions": [
+                {
+                    "id": 1,
+                    "type": "radio",
+                    "question": "How would you rate the overall course quality?",
+                    "options": ["Excellent", "Good", "Average", "Poor", "Very Poor"]
+                },
+                {
+                    "id": 2,
+                    "type": "radio",
+                    "question": "How clear were the course instructions?",
+                    "options": ["Very Clear", "Clear", "Somewhat Clear", "Unclear", "Very Unclear"]
+                },
+                {
+                    "id": 3,
+                    "type": "radio",
+                    "question": "How engaging was the course content?",
+                    "options": ["Very Engaging", "Engaging", "Neutral", "Boring", "Very Boring"]
+                },
+                {
+                    "id": 4,
+                    "type": "radio",
+                    "question": "Would you recommend this course to others?",
+                    "options": ["Definitely", "Probably", "Maybe", "Probably Not", "Definitely Not"]
+                },
+                {
+                    "id": 5,
+                    "type": "textarea",
+                    "question": "Please provide any additional comments or suggestions:",
+                    "placeholder": "Your comments here..."
+                }
+            ]
+        };
+
+        const studentData = {
+            "students": [
+                {
+                    "id": 1,
+                    "name": "Alice Johnson",
+                    "email": "alice.johnson@email.com",
+                    "class": "CS-101",
+                    "student_id": "ST001"
+                },
+                {
+                    "id": 2,
+                    "name": "Bob Smith",
+                    "email": "bob.smith@email.com",
+                    "class": "CS-101",
+                    "student_id": "ST002"
+                },
+                {
+                    "id": 3,
+                    "name": "Carol Williams",
+                    "email": "carol.williams@email.com",
+                    "class": "CS-101",
+                    "student_id": "ST003"
+                },
+                {
+                    "id": 4,
+                    "name": "David Brown",
+                    "email": "david.brown@email.com",
+                    "class": "CS-101",
+                    "student_id": "ST004"
+                },
+                {
+                    "id": 5,
+                    "name": "Eva Davis",
+                    "email": "eva.davis@email.com",
+                    "class": "CS-101",
+                    "student_id": "ST005"
+                }
+            ]
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Initialize localStorage if empty
+            if (!localStorage.getItem('answerResults')) {
+                localStorage.setItem('answerResults', JSON.stringify({"responses": []}));
+            }
+            
+            loadStudents();
+            loadQuestions();
+            updateReports();
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'report') {
+                updateReports();
+            }
+        }
+
+        function loadStudents() {
+            const studentSelect = document.getElementById('studentSelect');
+            studentSelect.innerHTML = '<option value="">Choose a student...</option>';
+            
+            studentData.students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.name} (${student.student_id})`;
+                studentSelect.appendChild(option);
+            });
+        }
+
+        function loadQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            questionnaireData.questions.forEach(question => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                
+                const questionTitle = document.createElement('h3');
+                questionTitle.textContent = `${question.id}. ${question.question}`;
+                questionDiv.appendChild(questionTitle);
+                
+                if (question.type === 'radio') {
+                    const radioGroup = document.createElement('div');
+                    radioGroup.className = 'radio-group';
+                    
+                    question.options.forEach((option, index) => {
+                        const radioOption = document.createElement('div');
+                        radioOption.className = 'radio-option';
+                        
+                        const radioInput = document.createElement('input');
+                        radioInput.type = 'radio';
+                        radioInput.name = `question_${question.id}`;
+                        radioInput.value = option;
+                        radioInput.id = `q${question.id}_${index}`;
+                        radioInput.required = true;
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `q${question.id}_${index}`;
+                        label.textContent = option;
+                        
+                        radioOption.appendChild(radioInput);
+                        radioOption.appendChild(label);
+                        radioGroup.appendChild(radioOption);
+                    });
+                    
+                    questionDiv.appendChild(radioGroup);
+                } else if (question.type === 'textarea') {
+                    const textarea = document.createElement('textarea');
+                    textarea.name = `question_${question.id}`;
+                    textarea.placeholder = question.placeholder || '';
+                    textarea.rows = 4;
+                    questionDiv.appendChild(textarea);
+                }
+                
+                container.appendChild(questionDiv);
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('questionnaireForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const studentId = document.getElementById('studentSelect').value;
+            if (!studentId) {
+                showMessage('Please select a student before submitting.', 'error');
+                return;
+            }
+            
+            // Check if student already submitted
+            const existingResults = JSON.parse(localStorage.getItem('answerResults'));
+            const existingResponse = existingResults.responses.find(r => r.student_id == studentId);
+            
+            if (existingResponse) {
+                showMessage('This student has already submitted a response.', 'error');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const answers = {};
+            
+            // Collect answers
+            questionnaireData.questions.forEach(question => {
+                const answer = formData.get(`question_${question.id}`);
+                answers[question.id] = answer || '';
+            });
+            
+            // Save to localStorage (simulating JSON file write)
+            const newResponse = {
+                student_id: parseInt(studentId),
+                timestamp: new Date().toISOString(),
+                answers: answers
+            };
+            
+            existingResults.responses.push(newResponse);
+            localStorage.setItem('answerResults', JSON.stringify(existingResults));
+            
+            showMessage('Questionnaire submitted successfully!', 'success');
+            this.reset();
+            
+            // Update reports if on report tab
+            updateReports();
+        });
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('submitMessage');
+            messageDiv.innerHTML = `<div class="${type}-message">${message}</div>`;
+            
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function updateReports() {
+            const results = JSON.parse(localStorage.getItem('answerResults'));
+            const responses = results.responses;
+            
+            // Update stats
+            document.getElementById('totalResponses').textContent = responses.length;
+            document.getElementById('completionRate').textContent = 
+                Math.round((responses.length / studentData.students.length) * 100) + '%';
+            
+            // Calculate average satisfaction (based on first question)
+            let avgSat = 0;
+            if (responses.length > 0) {
+                const satisfactionScores = responses.map(r => {
+                    const answer = r.answers['1'];
+                    const scoreMap = {'Excellent': 5, 'Good': 4, 'Average': 3, 'Poor': 2, 'Very Poor': 1};
+                    return scoreMap[answer] || 0;
+                });
+                avgSat = (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1);
+            }
+            document.getElementById('avgSatisfaction').textContent = avgSat;
+            
+            // Generate charts
+            generateCharts(responses);
+            
+            // Update student status
+            updateStudentStatus(responses);
+        }
+
+        function generateCharts(responses) {
+            const container = document.getElementById('chartsContainer');
+            container.innerHTML = '';
+            
+            questionnaireData.questions.forEach(question => {
+                if (question.type === 'radio') {
+                    const chartDiv = document.createElement('div');
+                    chartDiv.className = 'chart-container';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'chart-title';
+                    title.textContent = question.question;
+                    chartDiv.appendChild(title);
+                    
+                    const answerCounts = {};
+                    question.options.forEach(option => answerCounts[option] = 0);
+                    
+                    responses.forEach(response => {
+                        const answer = response.answers[question.id];
+                        if (answer && answerCounts.hasOwnProperty(answer)) {
+                            answerCounts[answer]++;
+                        }
+                    });
+                    
+                    const maxCount = Math.max(...Object.values(answerCounts), 1);
+                    
+                    Object.entries(answerCounts).forEach(([option, count]) => {
+                        const barDiv = document.createElement('div');
+                        barDiv.className = 'chart-bar';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'chart-label';
+                        label.textContent = option;
+                        
+                        const progress = document.createElement('div');
+                        progress.className = 'chart-progress';
+                        
+                        const fill = document.createElement('div');
+                        fill.className = 'chart-fill';
+                        fill.style.width = responses.length > 0 ? `${(count / maxCount) * 100}%` : '0%';
+                        
+                        const value = document.createElement('div');
+                        value.className = 'chart-value';
+                        value.textContent = count;
+                        
+                        progress.appendChild(fill);
+                        barDiv.appendChild(label);
+                        barDiv.appendChild(progress);
+                        barDiv.appendChild(value);
+                        chartDiv.appendChild(barDiv);
+                    });
+                    
+                    container.appendChild(chartDiv);
+                }
+            });
+        }
+
+        function updateStudentStatus(responses) {
+            const container = document.getElementById('studentStatusList');
+            container.innerHTML = '';
+            
+            studentData.students.forEach(student => {
+                const hasResponse = responses.some(r => r.student_id === student.id);
+                
+                const studentDiv = document.createElement('div');
+                studentDiv.className = 'student-item';
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'student-info';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'student-avatar';
+                avatar.textContent = student.name.charAt(0);
+                
+                const details = document.createElement('div');
+                details.className = 'student-details';
+                details.innerHTML = `
+                    <h4>${student.name}</h4>
+                    <p>${student.student_id} • ${student.email}</p>
+                `;
+                
+                const badge = document.createElement('div');
+                badge.className = `completion-badge ${hasResponse ? 'completed' : 'pending'}`;
+                badge.textContent = hasResponse ? 'Completed' : 'Pending';
+                
+                infoDiv.appendChild(avatar);
+                infoDiv.appendChild(details);
+                studentDiv.appendChild(infoDiv);
+                studentDiv.appendChild(badge);
+                container.appendChild(studentDiv);
+            });
+        }
+
+        // Simulate API calls for GitHub deployment
+        function simulateAPICall(method, endpoint, data = null) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if (method === 'GET') {
+                        if (endpoint === '/api/questionnaire-data') {
+                            resolve(questionnaireData);
+                        } else if (endpoint === '/api/student-data') {
+                            resolve(studentData);
+                        } else if (endpoint === '/api/answer-results') {
+                            resolve(JSON.parse(localStorage.getItem('answerResults')));
+                        }
+                    } else if (method === 'POST' && endpoint === '/api/submit-answer') {
+                        // In a real backend, this would write to answer_result.json
+                        const results = JSON.parse(localStorage.getItem('answerResults'));
+                        results.responses.push(data);
+                        localStorage.setItem('answerResults', JSON.stringify(results));
+                        resolve({success: true});
+                    }
+                }, 100);
+            });
+        }
+    </script>
+</body>
+</html>
