@@ -1,0 +1,71 @@
+{
+  "title": "Course Satisfaction Survey",
+  "description": "Please rate your experience with the course and provide feedback",
+  "created_date": "2025-06-01",
+  "questions": [
+    {
+      "id": 1,
+      "type": "radio",
+      "question": "How would you rate the overall course quality?",
+      "required": true,
+      "options": [
+        "Excellent",
+        "Good", 
+        "Average",
+        "Poor",
+        "Very Poor"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "radio",
+      "question": "How clear were the course instructions and materials?",
+      "required": true,
+      "options": [
+        "Very Clear",
+        "Clear",
+        "Somewhat Clear", 
+        "Unclear",
+        "Very Unclear"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "radio",
+      "question": "How engaging was the course content?",
+      "required": true,
+      "options": [
+        "Very Engaging",
+        "Engaging",
+        "Neutral",
+        "Boring",
+        "Very Boring"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "radio", 
+      "question": "Would you recommend this course to other students?",
+      "required": true,
+      "options": [
+        "Definitely",
+        "Probably",
+        "Maybe",
+        "Probably Not",
+        "Definitely Not"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "textarea",
+      "question": "Please provide any additional comments or suggestions for improvement:",
+      "required": false,
+      "placeholder": "Share your thoughts, suggestions, or any specific feedback about the course..."
+    }
+  ],
+  "settings": {
+    "allow_multiple_submissions": false,
+    "show_results_to_students": false,
+    "anonymous_responses": false
+  }
+}
